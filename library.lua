@@ -421,12 +421,14 @@ end
 
 local function AccentSequence(Base)
     local Accent = Theme.Accent
+    -- soft base → accent highlight → soft base (no blue shift)
+    local Soft = Base:Lerp(Accent, 0.15)
     return ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Base),
-        ColorSequenceKeypoint.new(0.25, Accent),
-        ColorSequenceKeypoint.new(0.5, Base),
-        ColorSequenceKeypoint.new(0.75, Accent),
-        ColorSequenceKeypoint.new(1, Base),
+        ColorSequenceKeypoint.new(0, Soft),
+        ColorSequenceKeypoint.new(0.35, Accent),
+        ColorSequenceKeypoint.new(0.5, Soft),
+        ColorSequenceKeypoint.new(0.65, Accent),
+        ColorSequenceKeypoint.new(1, Soft),
     }
 end
 
@@ -489,12 +491,14 @@ end
 local function MainGradient(Label)
     local Gradient = New("UIGradient", { Parent = Label })
     Themed(function()
+        local A = Theme.Accent
+        -- warm neutrals that match the lavender accent (no blue→pink)
         Gradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(250, 249, 255)),
-            ColorSequenceKeypoint.new(0.128, Color3.fromRGB(135, 140, 160)),
-            ColorSequenceKeypoint.new(0.233, Color3.fromRGB(102, 109, 132)),
-            ColorSequenceKeypoint.new(0.597, Theme.Accent),
-            ColorSequenceKeypoint.new(1, Theme.Accent),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(250, 245, 252)),
+            ColorSequenceKeypoint.new(0.15, Color3.fromRGB(170, 155, 175)),
+            ColorSequenceKeypoint.new(0.30, Color3.fromRGB(130, 115, 135)),
+            ColorSequenceKeypoint.new(0.55, A),
+            ColorSequenceKeypoint.new(1, A),
         }
     end)
     table.insert(Library.AnimatedGradients, Gradient)
@@ -819,16 +823,15 @@ Library.UpdateEffects = function(Self)
     TweenService:Create(SnowAlpha, FadeInfo("Window"), { Value = (Open and Library.SnowEnabled) and 1 or 0 }):Play()
 end
 
--- Accent gradient sweep: moves right, then snaps fully left (off-screen) and repeats
+-- Accent gradient sweep: enters from fully off left, exits fully off right, snaps back
 local GradientClock = 0
-local GRADIENT_SPEED = 0.32 -- slower one-way passes per second
+local GRADIENT_SPEED = 0.28 -- slower one-way passes per second
 
 Connect(RunService.RenderStepped, function(Delta)
     GradientClock += Delta * GRADIENT_SPEED
-    -- 0 → 1 then hard reset (no reverse)
     local t = GradientClock % 1
-    -- start fully off the left, exit fully off the right
-    local offsetX = (t * 2) - 1
+    -- wider range so big titles still start fully outside on the left
+    local offsetX = -1.6 + t * 3.2  -- -1.6 → +1.6
 
     local list = Library.AnimatedGradients
     for i = #list, 1, -1 do
