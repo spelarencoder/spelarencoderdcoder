@@ -58,8 +58,8 @@ Library = {
         ["Dim Text"]       = Color3.fromRGB(175, 175, 175),
         ["Inactive Text"]  = Color3.fromRGB(121, 121, 120),
         ["Option Text"]    = Color3.fromRGB(113, 114, 115),
-        ["Accent"]         = Color3.fromRGB(176, 188, 240),
-        ["Element Accent"] = Color3.fromRGB(113, 119, 138),
+        ["Accent"]         = Color3.fromRGB(189, 160, 188),
+        ["Element Accent"] = Color3.fromRGB(140, 120, 145),
     },
 
     Connections = { },
@@ -819,16 +819,15 @@ Library.UpdateEffects = function(Self)
     TweenService:Create(SnowAlpha, FadeInfo("Window"), { Value = (Open and Library.SnowEnabled) and 1 or 0 }):Play()
 end
 
--- Accent gradient sweep (linear left ↔ right ping-pong)
+-- Accent gradient sweep: moves right, then snaps fully left (off-screen) and repeats
 local GradientClock = 0
-local GRADIENT_SPEED = 0.55 -- full left→right→left cycles per second
+local GRADIENT_SPEED = 0.32 -- slower one-way passes per second
 
 Connect(RunService.RenderStepped, function(Delta)
     GradientClock += Delta * GRADIENT_SPEED
-    local phase = GradientClock % 2
-    -- linear 0 → 1 → 0
-    local t = phase < 1 and phase or (2 - phase)
-    -- map to Offset.X from -1 (left) to +1 (right)
+    -- 0 → 1 then hard reset (no reverse)
+    local t = GradientClock % 1
+    -- start fully off the left, exit fully off the right
     local offsetX = (t * 2) - 1
 
     local list = Library.AnimatedGradients
